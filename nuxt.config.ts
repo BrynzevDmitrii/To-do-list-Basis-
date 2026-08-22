@@ -4,6 +4,15 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
+  vite: {
+    server: {
+      watch: {
+        usePolling: true,
+        interval: 300
+      }
+    }
+  },
+
   typescript: {
     strict: true,
     typeCheck: false
