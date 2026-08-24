@@ -1,5 +1,5 @@
 <script setup lang="ts">
-withDefaults(
+const props = withDefaults(
   defineProps<{
     open: boolean
     title: string
@@ -20,20 +20,71 @@ const emit = defineEmits<{
   confirm: []
   cancel: []
 }>()
+
+const cancelButton = useTemplateRef<HTMLButtonElement>('cancelButton')
+const confirmButton = useTemplateRef<HTMLButtonElement>('confirmButton')
+
+let elementFocusedBeforeOpen: HTMLElement | null = null
+
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      elementFocusedBeforeOpen = document.activeElement as HTMLElement | null
+      nextTick(() => cancelButton.value?.focus())
+    } else {
+      elementFocusedBeforeOpen?.focus()
+      elementFocusedBeforeOpen = null
+    }
+  }
+)
+
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    emit('cancel')
+    return
+  }
+
+  if (event.key !== 'Tab') return
+
+  const focusables = [cancelButton.value, confirmButton.value].filter(
+    (el): el is HTMLButtonElement => el !== null
+  )
+  if (focusables.length === 0) return
+
+  const first = focusables[0]
+  const last = focusables[focusables.length - 1]
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last?.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first?.focus()
+  }
+}
+
 </script>
 
 <template>
   <Teleport to="body">
-    <div v-if="open" class="confirm-overlay" @click.self="emit('cancel')">
+    <div v-if="open" class="confirm-overlay" @click.self="emit('cancel')" @keydown="onKeydown">
       <div class="confirm-dialog" role="alertdialog" aria-modal="true" :aria-label="title">
         <h2 class="confirm-dialog__title">{{ title }}</h2>
         <p v-if="message" class="confirm-dialog__message">{{ message }}</p>
 
         <div class="confirm-dialog__actions">
-          <button type="button" class="btn" @click="emit('cancel')">
+          <button ref="cancelButton" type="button" class="btn" @click="emit('cancel')">
             {{ cancelLabel }}
           </button>
-          <button type="button" class="btn" :class="danger ? 'btn--danger' : 'btn--primary'" @click="emit('confirm')">
+          <button
+            ref="confirmButton"
+            type="button"
+            class="btn"
+            :class="danger ? 'btn--danger' : 'btn--primary'"
+            @click="emit('confirm')"
+          >
             {{ confirmLabel }}
           </button>
         </div>

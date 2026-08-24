@@ -40,6 +40,7 @@ const emit = defineEmits<{
 .editor-toolbar {
   &__history {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin-top: 16px;
 
@@ -64,9 +65,15 @@ const emit = defineEmits<{
 
   &__actions {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: 8px;
     margin-top: 24px;
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+      align-items: stretch;
+    }
   }
 }
 

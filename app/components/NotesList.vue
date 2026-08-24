@@ -58,6 +58,8 @@ const completionLabels = computed(() => {
   }
 
   &__title {
+    flex: 1;
+    min-width: 0;
     font-size: 16px;
     overflow: hidden;
     text-overflow: ellipsis;

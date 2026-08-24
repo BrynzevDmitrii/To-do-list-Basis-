@@ -24,19 +24,26 @@ const { toasts, remove } = useToast()
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
   z-index: 200;
+  width: calc(100% - 32px);
+  max-width: 400px;
+  box-sizing: border-box;
 }
 
 .toast {
+  box-sizing: border-box;
+  width: 100%;
   padding: 10px 20px;
   border: none;
   border-radius: 8px;
   font-size: 14px;
   color: #fff;
+  text-align: center;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  word-break: break-word;
 
   &--success {
     background: #16a34a;

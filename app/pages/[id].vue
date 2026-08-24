@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useNotes } from '~/composables/useNotes'
+import { useNotesStore } from '~/stores/notes'
 import { useUndoableState } from '~/composables/useUndoableState'
 import { useToast } from '~/composables/useToast'
 import type { NoteDraft, Note, DialogKind } from '~/types/types'
 
 const route = useRoute()
 const router = useRouter()
-const { getById, save, remove } = useNotes()
+const notesStore = useNotesStore()
 
 const id = computed<string>(() => String(route.params.id ?? ''))
 const isNew = computed<boolean>(() => id.value === 'new')
@@ -44,7 +44,7 @@ const dialogConfig = computed(() => {
 
 onMounted(() => {
   if (!isNew.value) {
-    const note = getById(id.value)
+    const note = notesStore.getById(id.value)
     if (!note) {
       notFound.value = true
       NoteIsReady.value = true
@@ -67,6 +67,13 @@ onBeforeUnmount(() => {
 
 function onKeydown(event: KeyboardEvent) {
   if (!event.ctrlKey || event.key.toLowerCase() !== 'z') return
+
+  const target = event.target
+  const isTextField =
+    target instanceof HTMLTextAreaElement ||
+    (target instanceof HTMLInputElement && target.type === 'text')
+  if (isTextField) return // let the browser handle native undo inside text fields
+
   event.preventDefault()
   if (event.shiftKey) redo()
   else undo()
@@ -105,7 +112,7 @@ function handleSave() {
     todos: currentList.value.todos,
     updatedAt: Date.now()
   }
-  save(note)
+  notesStore.save(note)
   originalDraft.value = {
     title: note.title,
     todos: note.todos.map((todo) => ({ ...todo }))
@@ -123,7 +130,7 @@ function confirmCancel() {
 
 function confirmDelete() {
   activeDialog.value = null
-  remove(id.value)
+  notesStore.remove(id.value)
   router.push('/')
 }
 </script>
@@ -161,20 +168,30 @@ function confirmDelete() {
 
 <style scoped lang="scss">
 .editor {
-  padding: 32px 0;
+  padding: 24px 16px;
   max-width: 600px;
   margin: 0 auto;
 
+  @media (min-width: 768px) {
+    padding: 32px 24px;
+  }
+
   &__header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     margin-bottom: 20px;
   }
 
   &__title {
-    font-size: 28px;
+    font-size: 22px;
     line-height: 1.25;
+
+    @media (min-width: 768px) {
+      font-size: 28px;
+    }
   }
 
   &__back {

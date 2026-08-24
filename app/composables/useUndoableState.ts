@@ -1,3 +1,4 @@
+import { ref, computed, type Ref } from 'vue'
 import { clone } from '~/utils/clone'
 
 export function useUndoableState<T>(initial: T) {

@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import Loader from '~/components/Loader.vue'
-import { useNotes } from '~/composables/useNotes'
-import type { Note } from '~/types/types'
+import { useNotesStore } from '~/stores/notes'
 
-const { sortedlist } = useNotes()
-const notes = ref<Note[]>([])
+const notesStore = useNotesStore()
+const notes = computed(() => notesStore.sortedList)
 const NoteIsReady = ref(false)
 
 onMounted(() => {
-  notes.value = sortedlist()
   NoteIsReady.value = true
 })
 </script>
@@ -26,14 +24,22 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .container {
-  padding: 32px 0;
+  padding: 24px 16px;
   max-width: 600px;
   margin: 0 auto;
 
+  @media (min-width: 768px) {
+    padding: 32px 24px;
+  }
+
   .title {
-    font-size: 32px;
+    font-size: 26px;
     line-height: 1.25;
     margin-bottom: 24px;
+
+    @media (min-width: 768px) {
+      font-size: 32px;
+    }
   }
 }
 </style>

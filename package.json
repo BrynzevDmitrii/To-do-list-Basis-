@@ -8,16 +8,22 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@pinia/nuxt": "^1.0.2",
     "nuxt": "4.4.2",
+    "pinia": "^4.0.3",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "jsdom": "^29.1.1",
     "sass": "^1.83.0",
     "typescript": "^5.6.3",
+    "vitest": "^4.1.11",
     "vue-tsc": "^2.2.0"
   }
 }
