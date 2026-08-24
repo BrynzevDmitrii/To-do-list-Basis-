@@ -15,3 +15,12 @@ export interface NoteDraft {
     title: string
     todos: TodoItem[]
 }
+
+
+export type DialogKind = 'cancel' | 'delete' | null
+
+export interface ToastMessage {
+    id: string
+    text: string
+    type: 'success' | 'error'
+}

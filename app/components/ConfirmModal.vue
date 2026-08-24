@@ -33,12 +33,7 @@ const emit = defineEmits<{
           <button type="button" class="btn" @click="emit('cancel')">
             {{ cancelLabel }}
           </button>
-          <button
-            type="button"
-            class="btn"
-            :class="danger ? 'btn--danger' : 'btn--primary'"
-            @click="emit('confirm')"
-          >
+          <button type="button" class="btn" :class="danger ? 'btn--danger' : 'btn--primary'" @click="emit('confirm')">
             {{ confirmLabel }}
           </button>
         </div>
