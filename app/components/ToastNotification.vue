@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { useToast } from '~/composables/useToast'
-const { toasts, remove } = useToast()
+import { storeToRefs } from 'pinia'
+import { useToastStore } from '~/stores/toast'
+
+const toastStore = useToastStore()
+const { toasts } = storeToRefs(toastStore)
+const { remove } = toastStore
 </script>
 
 <template>

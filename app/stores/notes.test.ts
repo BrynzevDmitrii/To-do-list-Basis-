@@ -42,15 +42,32 @@ describe('useNotesStore', () => {
     expect(store.getById('a')).toEqual(note)
   })
 
-  it('save() persists to localStorage', () => {
+  it('save() persists to localStorage tagged with the schema version', () => {
     const store = useNotesStore()
     store.save(makeNote({ id: 'a' }))
 
     const raw = window.localStorage.getItem('notes')
-    const persisted = JSON.parse(raw ?? '[]') as Note[]
+    const persisted = JSON.parse(raw ?? '{}') as { version: number; notes: Note[] }
 
-    expect(persisted).toHaveLength(1)
-    expect(persisted[0]?.id).toBe('a')
+    expect(persisted.version).toBe(1)
+    expect(persisted.notes).toHaveLength(1)
+    expect(persisted.notes[0]?.id).toBe('a')
+  })
+
+  it('still reads legacy data stored as a bare array with no version wrapper', () => {
+    window.localStorage.setItem('notes', JSON.stringify([makeNote({ id: 'legacy' })]))
+
+    const store = useNotesStore()
+
+    expect(store.getById('legacy')?.id).toBe('legacy')
+  })
+
+  it('starts empty when the stored schema version is unrecognized', () => {
+    window.localStorage.setItem('notes', JSON.stringify({ version: 999, notes: [makeNote({ id: 'a' })] }))
+
+    const store = useNotesStore()
+
+    expect(store.sortedList).toEqual([])
   })
 
   it('save() updates an existing note in place instead of duplicating it', () => {
@@ -93,7 +110,8 @@ describe('useNotesStore', () => {
     store.remove('a')
 
     const raw = window.localStorage.getItem('notes')
-    expect(JSON.parse(raw ?? '[]')).toEqual([])
+    const persisted = JSON.parse(raw ?? '{}') as { notes: Note[] }
+    expect(persisted.notes).toEqual([])
   })
 
   it('gracefully starts empty when localStorage contains invalid JSON', () => {
@@ -102,5 +120,25 @@ describe('useNotesStore', () => {
     const store = useNotesStore()
 
     expect(store.sortedList).toEqual([])
+  })
+
+  it('picks up changes written by another tab via the storage event', () => {
+    const store = useNotesStore()
+    store.save(makeNote({ id: 'a' }))
+
+    // Simulate another tab deleting note "a" and writing the result back to localStorage.
+    window.localStorage.setItem('notes', JSON.stringify({ version: 1, notes: [] }))
+    window.dispatchEvent(new StorageEvent('storage', { key: 'notes' }))
+
+    expect(store.getById('a')).toBeUndefined()
+  })
+
+  it('ignores storage events for unrelated keys', () => {
+    const store = useNotesStore()
+    store.save(makeNote({ id: 'a' }))
+
+    window.dispatchEvent(new StorageEvent('storage', { key: 'something-else' }))
+
+    expect(store.getById('a')).toBeDefined()
   })
 })

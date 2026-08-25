@@ -1,8 +1,10 @@
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import type { ToastMessage } from '~/types/types'
 
-const toasts = ref<ToastMessage[]>([])
+export const useToastStore = defineStore('toast', () => {
+  const toasts = ref<ToastMessage[]>([])
 
-export function useToast() {
   function show(text: string, type: ToastMessage['type'] = 'success', duration = 3000) {
     const id = crypto.randomUUID()
     toasts.value.push({ id, text, type })
@@ -14,4 +16,4 @@ export function useToast() {
   }
 
   return { toasts, show, remove }
-}
+})

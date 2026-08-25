@@ -1,26 +1,37 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { Note } from '~/types/types'
+import { ref, computed, onScopeDispose } from 'vue'
+import { readJson, writeJson } from '~/utils/storage'
+import type { Note, PersistedNotes } from '~/types/types'
 
 const STORAGE_KEY = 'notes'
+const SCHEMA_VERSION = 1
 
 function readFromStorage(): Note[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as Note[]) : []
-  } catch {
-    return []
-  }
+  const parsed = readJson<PersistedNotes | Note[]>(STORAGE_KEY)
+  if (!parsed) return []
+
+  if (Array.isArray(parsed)) return parsed
+
+  if (parsed.version === SCHEMA_VERSION) return parsed.notes
+
+  return []
 }
 
 function writeToStorage(notes: Note[]) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notes))
+  const payload: PersistedNotes = { version: SCHEMA_VERSION, notes }
+  writeJson(STORAGE_KEY, payload)
 }
 
 export const useNotesStore = defineStore('notes', () => {
   const notes = ref<Note[]>(readFromStorage())
+
+  if (typeof window !== 'undefined') {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEY) notes.value = readFromStorage()
+    }
+    window.addEventListener('storage', onStorage)
+    onScopeDispose(() => window.removeEventListener('storage', onStorage))
+  }
 
   const sortedList = computed<Note[]>(() => [...notes.value].sort((a, b) => b.updatedAt - a.updatedAt))
 

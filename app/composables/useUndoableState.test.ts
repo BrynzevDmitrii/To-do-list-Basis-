@@ -114,4 +114,35 @@ describe('useUndoableState', () => {
     // Undo should restore the committed snapshot (0), not be affected by the later mutation
     expect(currentList.value.count).toBe(0)
   })
+
+  it('caps history at 50 steps, discarding the oldest once the limit is exceeded', () => {
+    const { currentList, commit, undo, canUndo } = useUndoableState<Draft>({ title: '', count: 0 })
+
+    for (let i = 1; i <= 60; i++) {
+      currentList.value.count = i
+      commit()
+    }
+
+    // Undo as far as possible — the earliest 10 steps (count 0..9) should have been dropped,
+    // so the oldest reachable state is count = 10, not count = 0.
+    for (let i = 0; i < 60; i++) undo()
+
+    expect(currentList.value.count).toBe(10)
+    expect(canUndo.value).toBe(false)
+  })
+
+  it('redo still works normally after the history cap has trimmed old steps', () => {
+    const { currentList, commit, undo, redo } = useUndoableState<Draft>({ title: '', count: 0 })
+
+    for (let i = 1; i <= 55; i++) {
+      currentList.value.count = i
+      commit()
+    }
+
+    undo()
+    undo()
+    redo()
+
+    expect(currentList.value.count).toBe(54)
+  })
 })
